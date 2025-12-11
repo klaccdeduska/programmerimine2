@@ -1,34 +1,32 @@
-﻿using MediatR;
-using KooliProjekt.Application.Data;
+﻿using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
-using Microsoft.EntityFrameworkCore;
+using MediatR;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
     public class DeleteOperatsioonCommandHandler :
         IRequestHandler<DeleteOperatsioonCommand, OperationResult<bool>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IOperatsioonRepository _repo;
 
-        public DeleteOperatsioonCommandHandler(ApplicationDbContext db)
+        public DeleteOperatsioonCommandHandler(IOperatsioonRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
         public async Task<OperationResult<bool>> Handle(DeleteOperatsioonCommand request, CancellationToken ct)
         {
             var result = new OperationResult<bool>();
 
-            var entity = await _db.Operatsioonid.FirstOrDefaultAsync(x => x.Id == request.Id);
-
+            var entity = await _repo.GetByIdAsync(request.Id);
             if (entity == null)
             {
-                result.Errors.Add("Operatsioon not found.");
+                result.Errors.Add("Operatsioon not found");
                 return result;
             }
 
-            _db.Operatsioonid.Remove(entity);
-            await _db.SaveChangesAsync(ct);
+            _repo.Remove(entity);          // ← тут тоже ТОЛЬКО так
+            await _repo.SaveChangesAsync();
 
             result.Value = true;
             return result;

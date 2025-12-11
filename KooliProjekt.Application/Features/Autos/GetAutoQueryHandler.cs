@@ -1,33 +1,32 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Autos
 {
     public class GetAutoQueryHandler : IRequestHandler<GetAutoQuery, OperationResult<Auto>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IAutoRepository _repo;
 
-        public GetAutoQueryHandler(ApplicationDbContext db)
+        public GetAutoQueryHandler(IAutoRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<Auto>> Handle(GetAutoQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Auto>> Handle(GetAutoQuery request, CancellationToken ct)
         {
             var result = new OperationResult<Auto>();
 
-            var entity = await _db.Autos
-                .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
+            var auto = await _repo.GetByIdAsync(request.Id);
 
-            if (entity == null)
+            if (auto == null)
             {
-                result.AddError("Auto not found");
+                result.Errors.Add("Auto not found");
                 return result;
             }
 
-            result.Value = entity;
+            result.Value = auto;
             return result;
         }
     }

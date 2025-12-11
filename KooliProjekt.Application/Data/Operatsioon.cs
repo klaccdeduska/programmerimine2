@@ -1,14 +1,12 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Data
 {
-    public class Operatsioon
+    public class Operatsioon : Entity
     {
-        public int Id { get; set; }
-
         [Required]
         [ForeignKey(nameof(Auto))]
         public int AutoId { get; set; }

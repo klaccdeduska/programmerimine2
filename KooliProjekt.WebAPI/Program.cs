@@ -1,7 +1,14 @@
+п»їusing FluentValidation;
+using KooliProjekt.Application.Behaviors;
+using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Infrastructure.Results;
+using KooliProjekt.Application.Data.Repositories;
+using MediatR;
 using FluentValidation;
 using KooliProjekt.Application.Behaviors;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Infrastructure.Results;
+using KooliProjekt.Application.Data.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -15,16 +22,18 @@ namespace KooliProjekt.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Строка подключения
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-            // DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
             });
 
-            // MediatR + Behaviors + Validators
+            builder.Services.AddScoped<IAutoRepository, AutoRepository>();
+            builder.Services.AddScoped<ITootajaRepository, TootajaRepository>();
+            builder.Services.AddScoped<IOperatsioonRepository, OperatsioonRepository>();
+            builder.Services.AddScoped<IOperatsiooniTyypRepository, OperatsiooniTyypRepository>();
+
             var applicationAssembly = typeof(ErrorHandlingBehavior<,>).Assembly;
 
             builder.Services.AddValidatorsFromAssembly(applicationAssembly);
@@ -37,14 +46,12 @@ namespace KooliProjekt.WebAPI
                 config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
             });
 
-            // MVC + Swagger
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Swagger в Dev
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -60,7 +67,6 @@ namespace KooliProjekt.WebAPI
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 SeedData.Generate(db);
             }
-
 
             app.Run();
         }

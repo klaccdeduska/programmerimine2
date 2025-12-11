@@ -1,22 +1,21 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
     public class SaveOperatsioonCommandHandler :
         IRequestHandler<SaveOperatsioonCommand, OperationResult<Operatsioon>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IOperatsioonRepository _repo;
 
-        public SaveOperatsioonCommandHandler(ApplicationDbContext db)
+        public SaveOperatsioonCommandHandler(IOperatsioonRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<Operatsioon>> Handle(
-            SaveOperatsioonCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Operatsioon>> Handle(SaveOperatsioonCommand request, CancellationToken ct)
         {
             var result = new OperationResult<Operatsioon>();
             Operatsioon entity;
@@ -24,31 +23,32 @@ namespace KooliProjekt.Application.Features.Operatsioonid
             if (request.Id == 0)
             {
                 entity = new Operatsioon();
-                _db.Operatsioonid.Add(entity);
+                await _repo.AddAsync(entity);
             }
             else
             {
-                entity = await _db.Operatsioonid
-                    .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
+                entity = await _repo.GetByIdAsync(request.Id);
 
                 if (entity == null)
                 {
-                    result.AddError("Operatsioon not found");
+                    result.Errors.Add("Operatsioon not found");
                     return result;
                 }
             }
 
             entity.AutoId = request.AutoId;
-            entity.TüüpId = request.TüüpId;
             entity.TöötajaId = request.TöötajaId;
+            entity.TüüpId = request.TüüpId;
             entity.Kuupäev = request.Kuupäev;
             entity.Staatus = request.Staatus;
-            entity.Maksumus = request.Maksumus;
 
-            await _db.SaveChangesAsync(cancellationToken);
+            entity.Maksumus = request.Maksumus ?? 0m;
+
+            await _repo.SaveChangesAsync();
 
             result.Value = entity;
             return result;
         }
+
     }
 }

@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace KooliProjekt.Application.Data
 {
-    public class OperatsiooniTyyp
+    public class OperatsiooniTyyp : Entity
     {
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(100)]
         public string Nimi { get; set; }
@@ -14,4 +12,3 @@ namespace KooliProjekt.Application.Data
         public string Kirjeldus { get; set; }
     }
 }
-

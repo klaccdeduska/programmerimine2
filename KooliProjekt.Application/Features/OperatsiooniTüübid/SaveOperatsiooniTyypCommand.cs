@@ -4,7 +4,8 @@ using MediatR;
 
 namespace KooliProjekt.Application.Features.OperatsiooniTüübid
 {
-    public class SaveOperatsiooniTyypCommand : IRequest<OperationResult<OperatsiooniTyyp>>
+    public class SaveOperatsiooniTyypCommand :
+        IRequest<OperationResult<OperatsiooniTyyp>>
     {
         public int Id { get; set; }
         public string Nimi { get; set; }

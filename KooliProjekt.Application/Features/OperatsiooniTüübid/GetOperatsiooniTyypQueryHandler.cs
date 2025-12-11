@@ -1,31 +1,28 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.OperatsiooniTüübid
 {
-    public class GetOperatsiooniTyypQueryHandler
-        : IRequestHandler<GetOperatsiooniTyypQuery, OperationResult<OperatsiooniTyyp>>
+    public class GetOperatsiooniTyypQueryHandler :
+        IRequestHandler<GetOperatsiooniTyypQuery, OperationResult<OperatsiooniTyyp>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IOperatsiooniTyypRepository _repo;
 
-        public GetOperatsiooniTyypQueryHandler(ApplicationDbContext db)
+        public GetOperatsiooniTyypQueryHandler(IOperatsiooniTyypRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<OperatsiooniTyyp>> Handle(
-            GetOperatsiooniTyypQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<OperatsiooniTyyp>> Handle(GetOperatsiooniTyypQuery request, CancellationToken ct)
         {
             var result = new OperationResult<OperatsiooniTyyp>();
-
-            var entity = await _db.OperatsiooniTüübid
-                .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
+            var entity = await _repo.GetByIdAsync(request.Id);
 
             if (entity == null)
             {
-                result.AddError("OperatsiooniTyyp not found");
+                result.Errors.Add("Operatsiooni tüüp not found");
                 return result;
             }
 

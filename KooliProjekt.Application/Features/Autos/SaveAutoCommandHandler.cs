@@ -1,37 +1,38 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Autos
 {
-    public class SaveAutoCommandHandler : IRequestHandler<SaveAutoCommand, OperationResult<Auto>>
+    public class SaveAutoCommandHandler :
+        IRequestHandler<SaveAutoCommand, OperationResult<Auto>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IAutoRepository _repo;
 
-        public SaveAutoCommandHandler(ApplicationDbContext db)
+        public SaveAutoCommandHandler(IAutoRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<Auto>> Handle(SaveAutoCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Auto>> Handle(SaveAutoCommand request, CancellationToken ct)
         {
             var result = new OperationResult<Auto>();
+
             Auto entity;
 
             if (request.Id == 0)
             {
                 entity = new Auto();
-                _db.Autos.Add(entity);
+                await _repo.AddAsync(entity);
             }
             else
             {
-                entity = await _db.Autos
-                    .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
+                entity = await _repo.GetByIdAsync(request.Id);
 
                 if (entity == null)
                 {
-                    result.AddError("Auto not found");
+                    result.Errors.Add("Auto not found");
                     return result;
                 }
             }
@@ -40,7 +41,7 @@ namespace KooliProjekt.Application.Features.Autos
             entity.Mudel = request.Mudel;
             entity.Numbrimark = request.Numbrimark;
 
-            await _db.SaveChangesAsync(cancellationToken);
+            await _repo.SaveChangesAsync();
 
             result.Value = entity;
             return result;

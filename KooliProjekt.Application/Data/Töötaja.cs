@@ -2,10 +2,8 @@
 
 namespace KooliProjekt.Application.Data
 {
-    public class Töötaja
+    public class Töötaja : Entity
     {
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(100)]
         public string Nimi { get; set; }
@@ -13,7 +11,7 @@ namespace KooliProjekt.Application.Data
         [Required]
         [MaxLength(100)]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } // уникальный
 
         [Required]
         [MaxLength(20)]

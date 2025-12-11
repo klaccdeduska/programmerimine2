@@ -1,29 +1,28 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Tootajad
 {
-    public class GetTootajaQueryHandler : IRequestHandler<GetTootajaQuery, OperationResult<Töötaja>>
+    public class GetTootajaQueryHandler :
+        IRequestHandler<GetTootajaQuery, OperationResult<Töötaja>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly ITootajaRepository _repo;
 
-        public GetTootajaQueryHandler(ApplicationDbContext db)
+        public GetTootajaQueryHandler(ITootajaRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<Töötaja>> Handle(GetTootajaQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Töötaja>> Handle(GetTootajaQuery request, CancellationToken ct)
         {
             var result = new OperationResult<Töötaja>();
-
-            var entity = await _db.Töötajad
-                .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
+            var entity = await _repo.GetByIdAsync(request.Id);
 
             if (entity == null)
             {
-                result.AddError("Töötaja not found");
+                result.Errors.Add("Töötaja not found");
                 return result;
             }
 

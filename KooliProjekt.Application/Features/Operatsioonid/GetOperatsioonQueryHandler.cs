@@ -1,34 +1,28 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
-    public class GetOperatsioonQueryHandler
-        : IRequestHandler<GetOperatsioonQuery, OperationResult<Operatsioon>>
+    public class GetOperatsioonQueryHandler :
+        IRequestHandler<GetOperatsioonQuery, OperationResult<Operatsioon>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IOperatsioonRepository _repo;
 
-        public GetOperatsioonQueryHandler(ApplicationDbContext db)
+        public GetOperatsioonQueryHandler(IOperatsioonRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<Operatsioon>> Handle(
-            GetOperatsioonQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Operatsioon>> Handle(GetOperatsioonQuery request, CancellationToken ct)
         {
             var result = new OperationResult<Operatsioon>();
-
-            var entity = await _db.Operatsioonid
-                .Include(o => o.Auto)
-                .Include(o => o.Töötaja)
-                .Include(o => o.Tüüp)
-                .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
+            var entity = await _repo.GetByIdAsync(request.Id);
 
             if (entity == null)
             {
-                result.AddError("Operatsioon not found");
+                result.Errors.Add("Operatsioon not found");
                 return result;
             }
 

@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace KooliProjekt.Application.Data
 {
-    public class Auto
+    public class Auto : Entity
     {
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(100)]
         public string Tootja { get; set; }

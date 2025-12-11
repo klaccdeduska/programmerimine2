@@ -1,22 +1,21 @@
 ﻿using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.OperatsiooniTüübid
 {
     public class SaveOperatsiooniTyypCommandHandler :
         IRequestHandler<SaveOperatsiooniTyypCommand, OperationResult<OperatsiooniTyyp>>
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IOperatsiooniTyypRepository _repo;
 
-        public SaveOperatsiooniTyypCommandHandler(ApplicationDbContext db)
+        public SaveOperatsiooniTyypCommandHandler(IOperatsiooniTyypRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<OperatsiooniTyyp>> Handle(
-            SaveOperatsiooniTyypCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<OperatsiooniTyyp>> Handle(SaveOperatsiooniTyypCommand request, CancellationToken ct)
         {
             var result = new OperationResult<OperatsiooniTyyp>();
             OperatsiooniTyyp entity;
@@ -24,16 +23,15 @@ namespace KooliProjekt.Application.Features.OperatsiooniTüübid
             if (request.Id == 0)
             {
                 entity = new OperatsiooniTyyp();
-                _db.OperatsiooniTüübid.Add(entity);
+                await _repo.AddAsync(entity);
             }
             else
             {
-                entity = await _db.OperatsiooniTüübid
-                    .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
+                entity = await _repo.GetByIdAsync(request.Id);
 
                 if (entity == null)
                 {
-                    result.AddError("OperatsiooniTyyp not found");
+                    result.Errors.Add("Operatsiooni tüüp not found");
                     return result;
                 }
             }
@@ -41,7 +39,7 @@ namespace KooliProjekt.Application.Features.OperatsiooniTüübid
             entity.Nimi = request.Nimi;
             entity.Kirjeldus = request.Kirjeldus;
 
-            await _db.SaveChangesAsync(cancellationToken);
+            await _repo.SaveChangesAsync();
 
             result.Value = entity;
             return result;

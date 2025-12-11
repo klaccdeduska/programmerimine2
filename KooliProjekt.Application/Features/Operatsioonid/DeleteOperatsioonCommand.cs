@@ -1,5 +1,5 @@
-﻿using MediatR;
-using KooliProjekt.Application.Infrastructure.Results;
+﻿using KooliProjekt.Application.Infrastructure.Results;
+using MediatR;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
