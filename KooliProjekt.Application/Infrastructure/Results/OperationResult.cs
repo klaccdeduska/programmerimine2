@@ -2,36 +2,32 @@
 
 namespace KooliProjekt.Application.Infrastructure.Results
 {
-    public class OperationResult<T>
+    public class OperationResult
     {
-        public bool Success => Errors.Count == 0;
+        /// <summary>
+        /// Есть ли ошибки
+        /// </summary>
+        public bool HasErrors => Errors.Count > 0;
+
+        /// <summary>
+        /// Успешно ли выполнено (нет ошибок)
+        /// </summary>
+        public bool Success => !HasErrors;
+
+        /// <summary>
+        /// Список ошибок (простым текстом, можно и property: message)
+        /// </summary>
         public List<string> Errors { get; set; } = new();
-        public T Value { get; set; }
-        }
-        }
 
         public OperationResult AddError(string error)
         {
-            if (Errors == null)
-            {
-                Errors = new List<string>();
-            }
-
             Errors.Add(error);
-
             return this;
         }
 
-        public OperationResult AddPropertyError(string property, string error)
+        public OperationResult AddPropertyError(string propertyName, string error)
         {
-            if (PropertyErrors == null)
-            {
-                PropertyErrors = new Dictionary<string, string>();
-            }
-            }
-
-            PropertyErrors.Add(property, error);
-
+            Errors.Add($"{propertyName}: {error}");
             return this;
         }
     }

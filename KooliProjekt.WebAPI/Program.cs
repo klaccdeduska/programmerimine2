@@ -1,11 +1,11 @@
 using FluentValidation;
 using KooliProjekt.Application.Behaviors;
 using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Infrastructure.Results;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using System.Reflection;
 
 namespace KooliProjekt.WebAPI
 {
@@ -15,22 +15,20 @@ namespace KooliProjekt.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Строка подключения
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-            // Add services to the container.
+            // DbContext
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
             });
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
+            // MediatR + Behaviors + Validators
             var applicationAssembly = typeof(ErrorHandlingBehavior<,>).Assembly;
+
             builder.Services.AddValidatorsFromAssembly(applicationAssembly);
+
             builder.Services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(applicationAssembly);
@@ -39,9 +37,14 @@ namespace KooliProjekt.WebAPI
                 config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
             });
 
+            // MVC + Swagger
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Swagger в Dev
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -49,7 +52,6 @@ namespace KooliProjekt.WebAPI
             }
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
