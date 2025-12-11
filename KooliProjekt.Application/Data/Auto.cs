@@ -16,5 +16,6 @@ namespace KooliProjekt.Application.Data
 
         [Required]
         [MaxLength(15)]
-        public string Numbrimark { get; set; } 
+        public string Numbrimark { get; set; }
+    }
 }
