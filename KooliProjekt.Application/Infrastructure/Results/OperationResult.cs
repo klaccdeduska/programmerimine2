@@ -2,23 +2,12 @@
 
 namespace KooliProjekt.Application.Infrastructure.Results
 {
-    public class OperationResult
+    public class OperationResult<T>
     {
-        public IDictionary<string, string> PropertyErrors { get; private set; }
-        public IList<string> Errors { get; private set; }
-
-        public bool HasErrors 
-        {
-            get
-            {
-                return PropertyErrors?.Count > 0 ||
-                       Errors?.Count > 0;
-            }
+        public bool Success => Errors.Count == 0;
+        public List<string> Errors { get; set; } = new();
+        public T Value { get; set; }
         }
-
-        public bool ShouldSerializeHasErrors()
-        {
-            return HasErrors;
         }
 
         public OperationResult AddError(string error)
@@ -39,9 +28,6 @@ namespace KooliProjekt.Application.Infrastructure.Results
             {
                 PropertyErrors = new Dictionary<string, string>();
             }
-            else if (PropertyErrors.ContainsKey(property))
-            {
-                return this;
             }
 
             PropertyErrors.Add(property, error);
