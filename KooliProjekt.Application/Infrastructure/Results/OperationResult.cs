@@ -4,19 +4,13 @@ namespace KooliProjekt.Application.Infrastructure.Results
 {
     public class OperationResult
     {
-        /// <summary>
-        /// Есть ли ошибки
-        /// </summary>
+
         public bool HasErrors => Errors.Count > 0;
 
-        /// <summary>
-        /// Успешно ли выполнено (нет ошибок)
-        /// </summary>
+
         public bool Success => !HasErrors;
 
-        /// <summary>
-        /// Список ошибок (простым текстом, можно и property: message)
-        /// </summary>
+
         public List<string> Errors { get; set; } = new();
 
         public OperationResult AddError(string error)

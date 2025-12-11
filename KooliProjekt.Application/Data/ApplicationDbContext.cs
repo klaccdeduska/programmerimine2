@@ -10,7 +10,6 @@ namespace KooliProjekt.Application.Data
         {
         }
 
-        // Наши сущности
         public DbSet<Auto> Autos { get; set; }
         public DbSet<Operatsioon> Operatsioonid { get; set; }
         public DbSet<OperatsiooniTyyp> OperatsiooniTüübid { get; set; }
@@ -20,7 +19,6 @@ namespace KooliProjekt.Application.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Уникальные индексы
             modelBuilder.Entity<Auto>()
                 .HasIndex(a => a.Numbrimark)
                 .IsUnique();
@@ -33,7 +31,6 @@ namespace KooliProjekt.Application.Data
                 .HasIndex(t => t.Nimi)
                 .IsUnique();
 
-            // Связи Operatsioon
             modelBuilder.Entity<Operatsioon>()
                 .HasOne(o => o.Auto)
                 .WithMany()
@@ -52,27 +49,21 @@ namespace KooliProjekt.Application.Data
                 .HasForeignKey(o => o.TöötajaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ===== SEED DATA =====
-
-            // Работники
             modelBuilder.Entity<Töötaja>().HasData(
                 new Töötaja { Id = 1, Nimi = "Admin", Email = "admin@example.com", Roll = "Administraator" },
                 new Töötaja { Id = 2, Nimi = "Jaan", Email = "jaan@example.com", Roll = "Töötaja" }
             );
 
-            // Авто
             modelBuilder.Entity<Auto>().HasData(
                 new Auto { Id = 1, Tootja = "Toyota", Mudel = "Corolla", Numbrimark = "123ABC" },
                 new Auto { Id = 2, Tootja = "BMW", Mudel = "320", Numbrimark = "555BMW" }
             );
 
-            // Типы операций
             modelBuilder.Entity<OperatsiooniTyyp>().HasData(
                 new OperatsiooniTyyp { Id = 1, Nimi = "Õlivahetus", Kirjeldus = "Mootoriõli vahetus" },
                 new OperatsiooniTyyp { Id = 2, Nimi = "Rehvide vahetus", Kirjeldus = "Rehvide vahetus komplektiga" }
             );
 
-            // Операции
             modelBuilder.Entity<Operatsioon>().HasData(
                 new Operatsioon
                 {

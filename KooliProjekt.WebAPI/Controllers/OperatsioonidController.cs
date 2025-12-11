@@ -22,5 +22,19 @@ namespace KooliProjekt.WebAPI.Controllers
             var response = await _mediator.Send(query);
             return Result(response);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var response = await _mediator.Send(new GetOperatsioonQuery { Id = id });
+            return Result(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Save([FromBody] SaveOperatsioonCommand command)
+        {
+            var response = await _mediator.Send(command);
+            return Result(response);
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace KooliProjekt.Application.Data
 
         [Required]
         [MaxLength(100)]
-        public string Nimi { get; set; } // уникальный
+        public string Nimi { get; set; }
 
         [MaxLength(255)]
         public string Kirjeldus { get; set; }

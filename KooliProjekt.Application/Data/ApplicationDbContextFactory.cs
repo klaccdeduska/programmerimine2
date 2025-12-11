@@ -9,7 +9,6 @@ namespace KooliProjekt.Application.Data
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-            // ⚠️ Укажи свою строку подключения сюда
             var connectionString = "Server=(localdb)\\mssqllocaldb;Database=aspnet-KooliProjekt-Gunnar;Trusted_Connection=True;MultipleActiveResultSets=true";
 
             optionsBuilder.UseSqlServer(connectionString);

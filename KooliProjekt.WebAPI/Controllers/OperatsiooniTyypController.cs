@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class OperatsiooniTyypController : ApiControllerBase
     {
         private readonly IMediator _mediator;
@@ -18,6 +20,20 @@ namespace KooliProjekt.WebAPI.Controllers
         public async Task<IActionResult> List([FromQuery] ListOperatsiooniTyypQuery query)
         {
             var response = await _mediator.Send(query);
+            return Result(response);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var response = await _mediator.Send(new GetOperatsiooniTyypQuery { Id = id });
+            return Result(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Save([FromBody] SaveOperatsiooniTyypCommand command)
+        {
+            var response = await _mediator.Send(command);
             return Result(response);
         }
     }

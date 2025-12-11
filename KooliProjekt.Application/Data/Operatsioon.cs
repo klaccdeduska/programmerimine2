@@ -22,7 +22,7 @@ namespace KooliProjekt.Application.Data
         public int TöötajaId { get; set; }
 
         [Required]
-        public DateTime Kuupäev { get; set; } // проверка “не будущая” будет в FluentValidation
+        public DateTime Kuupäev { get; set; }
 
         [Required]
         [MaxLength(20)]

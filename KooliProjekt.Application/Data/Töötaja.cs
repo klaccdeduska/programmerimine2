@@ -13,7 +13,7 @@ namespace KooliProjekt.Application.Data
         [Required]
         [MaxLength(100)]
         [EmailAddress]
-        public string Email { get; set; } // уникальный
+        public string Email { get; set; }
 
         [Required]
         [MaxLength(20)]
