@@ -1,12 +1,12 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Data.Repositories;
+﻿using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
     public class GetOperatsioonQueryHandler :
-        IRequestHandler<GetOperatsioonQuery, OperationResult<Operatsioon>>
+        IRequestHandler<GetOperatsioonQuery, OperationResult<OperatsioonDto>>
     {
         private readonly IOperatsioonRepository _repo;
 
@@ -15,18 +15,35 @@ namespace KooliProjekt.Application.Features.Operatsioonid
             _repo = repo;
         }
 
-        public async Task<OperationResult<Operatsioon>> Handle(GetOperatsioonQuery request, CancellationToken ct)
+        public async Task<OperationResult<OperatsioonDto>> Handle(
+            GetOperatsioonQuery request,
+            CancellationToken ct)
         {
-            var result = new OperationResult<Operatsioon>();
+            var result = new OperationResult<OperatsioonDto>();
+
+            if (request == null)
+            {
+                return result;
+            }
+
             var entity = await _repo.GetByIdAsync(request.Id);
 
             if (entity == null)
             {
-                result.Errors.Add("Operatsioon not found");
                 return result;
             }
 
-            result.Value = entity;
+            result.Value = new OperatsioonDto
+            {
+                Id = entity.Id,
+                AutoId = entity.AutoId,
+                TöötajaId = entity.TöötajaId,
+                TüüpId = entity.TüüpId,
+                Kuupäev = entity.Kuupäev,
+                Staatus = entity.Staatus,
+                Maksumus = entity.Maksumus
+            };
+
             return result;
         }
     }

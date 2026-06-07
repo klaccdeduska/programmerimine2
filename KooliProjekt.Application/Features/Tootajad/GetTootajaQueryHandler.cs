@@ -1,12 +1,12 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Data.Repositories;
+﻿using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 
 namespace KooliProjekt.Application.Features.Tootajad
 {
     public class GetTootajaQueryHandler :
-        IRequestHandler<GetTootajaQuery, OperationResult<Töötaja>>
+        IRequestHandler<GetTootajaQuery, OperationResult<TootajaDto>>
     {
         private readonly ITootajaRepository _repo;
 
@@ -15,18 +15,30 @@ namespace KooliProjekt.Application.Features.Tootajad
             _repo = repo;
         }
 
-        public async Task<OperationResult<Töötaja>> Handle(GetTootajaQuery request, CancellationToken ct)
+        public async Task<OperationResult<TootajaDto>> Handle(GetTootajaQuery request, CancellationToken ct)
         {
-            var result = new OperationResult<Töötaja>();
+            var result = new OperationResult<TootajaDto>();
+
+            if (request == null)
+            {
+                return result;
+            }
+
             var entity = await _repo.GetByIdAsync(request.Id);
 
             if (entity == null)
             {
-                result.Errors.Add("Töötaja not found");
                 return result;
             }
 
-            result.Value = entity;
+            result.Value = new TootajaDto
+            {
+                Id = entity.Id,
+                Nimi = entity.Nimi,
+                Email = entity.Email,
+                Roll = entity.Roll
+            };
+
             return result;
         }
     }

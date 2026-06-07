@@ -1,11 +1,12 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Data.Repositories;
+﻿using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 
 namespace KooliProjekt.Application.Features.Autos
 {
-    public class GetAutoQueryHandler : IRequestHandler<GetAutoQuery, OperationResult<Auto>>
+    public class GetAutoQueryHandler :
+        IRequestHandler<GetAutoQuery, OperationResult<AutoDto>>
     {
         private readonly IAutoRepository _repo;
 
@@ -14,19 +15,30 @@ namespace KooliProjekt.Application.Features.Autos
             _repo = repo;
         }
 
-        public async Task<OperationResult<Auto>> Handle(GetAutoQuery request, CancellationToken ct)
+        public async Task<OperationResult<AutoDto>> Handle(GetAutoQuery request, CancellationToken ct)
         {
-            var result = new OperationResult<Auto>();
+            var result = new OperationResult<AutoDto>();
 
-            var auto = await _repo.GetByIdAsync(request.Id);
-
-            if (auto == null)
+            if (request == null)
             {
-                result.Errors.Add("Auto not found");
                 return result;
             }
 
-            result.Value = auto;
+            var entity = await _repo.GetByIdAsync(request.Id);
+
+            if (entity == null)
+            {
+                return result;
+            }
+
+            result.Value = new AutoDto
+            {
+                Id = entity.Id,
+                Tootja = entity.Tootja,
+                Mudel = entity.Mudel,
+                Numbrimark = entity.Numbrimark
+            };
+
             return result;
         }
     }
