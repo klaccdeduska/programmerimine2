@@ -1,4 +1,5 @@
 using KooliProjekt.WindowsForms.Api;
+using KooliProjekt.WindowsForms.Presenter;
 
 namespace KooliProjekt.WindowsForms
 {
@@ -9,17 +10,19 @@ namespace KooliProjekt.WindowsForms
         {
             ApplicationConfiguration.Initialize();
 
-            // Поменяй порт на свой порт WebAPI из Swagger
-            var apiBaseUrl = "http://localhost:5086/";
-
             var httpClient = new HttpClient
             {
-                BaseAddress = new Uri(apiBaseUrl)
+                BaseAddress = new Uri("http://localhost:5086/")
             };
 
             IApiClient apiClient = new ApiClient(httpClient);
 
-            Application.Run(new Form1(apiClient));
+            var form = new Form1();
+            var presenter = new AutosPresenter(form, apiClient);
+
+            form.Presenter = presenter;
+
+            Application.Run(form);
         }
     }
 }

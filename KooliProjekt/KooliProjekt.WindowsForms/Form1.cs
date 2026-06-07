@@ -1,144 +1,104 @@
-﻿using System.ComponentModel;
-using System.Text;
-using KooliProjekt.WindowsForms.Api;
+﻿using System.Text;
 using KooliProjekt.WindowsForms.Models;
+using KooliProjekt.WindowsForms.Presenter;
+using KooliProjekt.WindowsForms.View;
 
 namespace KooliProjekt.WindowsForms
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form, IAutosView
     {
-        private readonly IApiClient _apiClient;
-        private BindingList<AutoModel> _autos = new();
+        public AutosPresenter Presenter { private get; set; }
 
         public Form1()
-            : this(new ApiClient(new HttpClient
-            {
-                BaseAddress = new Uri("http://localhost:5086/")
-            }))
         {
+            InitializeComponent();
         }
 
-        public Form1(IApiClient apiClient)
+        public IList<AutoModel> Autos
         {
-            _apiClient = apiClient;
+            set
+            {
+                dataGridView1.DataSource = null;
+                dataGridView1.AutoGenerateColumns = true;
+                dataGridView1.DataSource = value;
+            }
+        }
 
-            InitializeComponent();
+        public int CurrentId
+        {
+            get
+            {
+                if (int.TryParse(idTextBox.Text, out var id))
+                {
+                    return id;
+                }
+
+                return 0;
+            }
+            set
+            {
+                idTextBox.Text = value.ToString();
+            }
+        }
+
+        public string CurrentTootja
+        {
+            get => tootjaTextBox.Text;
+            set => tootjaTextBox.Text = value;
+        }
+
+        public string CurrentMudel
+        {
+            get => mudelTextBox.Text;
+            set => mudelTextBox.Text = value;
+        }
+
+        public string CurrentNumbrimark
+        {
+            get => numbrimarkTextBox.Text;
+            set => numbrimarkTextBox.Text = value;
         }
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            await LoadData();
+            if (Presenter != null)
+            {
+                await Presenter.LoadDataAsync();
+            }
         }
 
-        private async Task LoadData()
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
         {
-            var result = await _apiClient.GetAutosAsync();
+            var auto = dataGridView1.CurrentRow?.DataBoundItem as AutoModel;
 
-            if (result.HasErrors)
-            {
-                ShowError(result);
-                return;
-            }
-
-            _autos = new BindingList<AutoModel>(result.Value ?? new List<AutoModel>());
-
-            dataGridView1.AutoGenerateColumns = true;
-            dataGridView1.DataSource = _autos;
+            Presenter?.SelectionChanged(auto);
         }
 
         private async void addButton_Click(object sender, EventArgs e)
         {
-            var auto = new AutoModel
+            if (Presenter != null)
             {
-                Id = 0,
-                Tootja = "Uus tootja",
-                Mudel = "Uus mudel",
-                Numbrimark = "NEW" + DateTime.Now.Ticks.ToString()[^4..]
-            };
-
-            var result = await _apiClient.SaveAutoAsync(auto);
-
-            if (result.HasErrors)
-            {
-                ShowError(result);
-                return;
+                await Presenter.AddNewAsync();
             }
-
-            await LoadData();
         }
 
         private async void saveButton_Click(object sender, EventArgs e)
         {
-            dataGridView1.EndEdit();
-
-            var auto = GetSelectedAuto();
-
-            if (auto == null)
+            if (Presenter != null)
             {
-                MessageBox.Show("Vali rida, mida salvestada.");
-                return;
+                await Presenter.SaveAsync();
             }
-
-            var result = await _apiClient.SaveAutoAsync(auto);
-
-            if (result.HasErrors)
-            {
-                ShowError(result);
-                return;
-            }
-
-            await LoadData();
         }
 
         private async void deleteButton_Click(object sender, EventArgs e)
         {
-            var auto = GetSelectedAuto();
-
-            if (auto == null)
+            if (Presenter != null)
             {
-                MessageBox.Show("Vali rida, mida kustutada.");
-                return;
+                await Presenter.DeleteAsync();
             }
-
-            if (auto.Id <= 0)
-            {
-                MessageBox.Show("Seda rida ei saa kustutada, sest ID puudub.");
-                return;
-            }
-
-            var confirm = MessageBox.Show(
-                $"Kas kustutada auto {auto.Tootja} {auto.Mudel}?",
-                "Kinnitus",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (confirm != DialogResult.Yes)
-            {
-                return;
-            }
-
-            var result = await _apiClient.DeleteAutoAsync(auto.Id);
-
-            if (result.HasErrors)
-            {
-                ShowError(result);
-                return;
-            }
-
-            await LoadData();
         }
 
-        private AutoModel GetSelectedAuto()
-        {
-            if (dataGridView1.CurrentRow == null)
-            {
-                return null;
-            }
-
-            return dataGridView1.CurrentRow.DataBoundItem as AutoModel;
-        }
-
-        private void ShowError(OperationResult result)
+        public void ShowError(OperationResult result)
         {
             var message = new StringBuilder();
 
@@ -165,6 +125,24 @@ namespace KooliProjekt.WindowsForms
                 "Viga",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
+        }
+
+        public void ShowMessage(string message)
+        {
+            MessageBox.Show(
+                message,
+                "Info",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+        }
+
+        public bool Confirm(string message)
+        {
+            return MessageBox.Show(
+                message,
+                "Kinnitus",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) == DialogResult.Yes;
         }
     }
 }
