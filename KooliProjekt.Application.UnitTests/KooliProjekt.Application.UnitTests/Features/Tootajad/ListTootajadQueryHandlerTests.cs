@@ -12,6 +12,44 @@ namespace KooliProjekt.Application.UnitTests.Features.Tootajad
     public class ListTootajadQueryHandlerTests : TestBase
     {
         [Fact]
+        public async Task Handle_WhenSearchIsProvided_ReturnsMatchingTootajad()
+        {
+            using var dbContext = GetDbContext();
+
+            await dbContext.Töötajad.AddAsync(new Töötaja
+            {
+                Nimi = "Mati Maasikas",
+                Email = "mati@mail.com",
+                Roll = "Mehaanik"
+            });
+
+            await dbContext.Töötajad.AddAsync(new Töötaja
+            {
+                Nimi = "Kati Kuusk",
+                Email = "kati@mail.com",
+                Roll = "Admin"
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            var repo = new TootajaRepository(dbContext);
+            var handler = new ListTootajadQueryHandler(repo);
+
+            var result = await handler.Handle(new ListTootajadQuery
+            {
+                Page = 1,
+                PageSize = 10,
+                Search = "admin"
+            }, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Value);
+
+            var item = Assert.Single(result.Value.Results);
+            Assert.Equal("Kati Kuusk", item.Nimi);
+        }
+        [Fact]
         public async Task Handle_WhenRequestIsNull_ThrowsArgumentNullException()
         {
             var repo = new Mock<ITootajaRepository>();

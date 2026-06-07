@@ -1,4 +1,7 @@
+using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Paging;
@@ -18,7 +21,9 @@ namespace KooliProjekt.Application.Features.Autos
             _repo = repo;
         }
 
-        public async Task<OperationResult<PagedResult<Auto>>> Handle(ListAutosQuery request, CancellationToken ct)
+        public async Task<OperationResult<PagedResult<Auto>>> Handle(
+            ListAutosQuery request,
+            CancellationToken ct)
         {
             if (request == null)
             {
@@ -40,10 +45,21 @@ namespace KooliProjekt.Application.Features.Autos
                 throw new ArgumentException($"PageSize must be less than or equal to {MaxPageSize}.", nameof(request.PageSize));
             }
 
+            var query = _repo.Query();
+
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                var search = request.Search.Trim().ToLower();
+
+                query = query.Where(x =>
+                    ((x.Tootja ?? "") + " " + (x.Mudel ?? "") + " " + (x.Numbrimark ?? ""))
+                    .ToLower()
+                    .Contains(search));
+            }
+
             var result = new OperationResult<PagedResult<Auto>>();
 
-            result.Value = await _repo
-                .Query()
+            result.Value = await query
                 .OrderBy(x => x.Id)
                 .GetPagedAsync(request.Page, request.PageSize);
 

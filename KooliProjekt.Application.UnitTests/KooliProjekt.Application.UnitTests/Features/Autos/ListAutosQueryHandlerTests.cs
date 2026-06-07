@@ -12,6 +12,44 @@ namespace KooliProjekt.Application.UnitTests.Features.Autos
     public class ListAutosQueryHandlerTests : TestBase
     {
         [Fact]
+        public async Task Handle_WhenSearchIsProvided_ReturnsMatchingAutos()
+        {
+            using var dbContext = GetDbContext();
+
+            await dbContext.Autos.AddAsync(new Auto
+            {
+                Tootja = "Toyota",
+                Mudel = "Corolla",
+                Numbrimark = "123ABC"
+            });
+
+            await dbContext.Autos.AddAsync(new Auto
+            {
+                Tootja = "BMW",
+                Mudel = "X5",
+                Numbrimark = "456DEF"
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            var repo = new AutoRepository(dbContext);
+            var handler = new ListAutosQueryHandler(repo);
+
+            var result = await handler.Handle(new ListAutosQuery
+            {
+                Page = 1,
+                PageSize = 10,
+                Search = "toyota"
+            }, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Value);
+
+            var item = Assert.Single(result.Value.Results);
+            Assert.Equal("Toyota", item.Tootja);
+        }
+        [Fact]
         public async Task Handle_WhenRequestIsNull_ThrowsArgumentNullException()
         {
             var repo = new Mock<IAutoRepository>();

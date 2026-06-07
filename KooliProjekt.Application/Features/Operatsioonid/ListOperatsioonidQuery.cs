@@ -5,9 +5,11 @@ using MediatR;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
-    public class ListOperatsioonidQuery : IRequest<OperationResult<PagedResult<Operatsioon>>>
+    public class ListOperatsioonidQuery :
+        IRequest<OperationResult<PagedResult<Operatsioon>>>
     {
         public int Page { get; set; }
         public int PageSize { get; set; }
+        public string Search { get; set; }
     }
 }

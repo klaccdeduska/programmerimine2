@@ -5,6 +5,16 @@ $resultsDir = ".\TestResults"
 $reportDir = ".\TestReport"
 $toolsDir = ".\.tools"
 
+$classFilters = @(
+    "-KooliProjekt.Application.Behaviors.*",
+    "-KooliProjekt.Application.Data.*",
+    "-KooliProjekt.Application.Dto.*",
+    "-KooliProjekt.Application.Infrastructure.*",
+    "-KooliProjekt.Application.Migrations.*",
+    "-KooliProjekt.Application.Features.*.*Command",
+    "-KooliProjekt.Application.Features.*.*Query"
+) -join ";"
+
 if (Test-Path $resultsDir) {
     Remove-Item $resultsDir -Recurse -Force
 }
@@ -28,6 +38,7 @@ dotnet test $projectFile `
 & "$toolsDir\reportgenerator.exe" `
     "-reports:$resultsDir\**\coverage.cobertura.xml" `
     "-targetdir:$reportDir" `
-    "-reporttypes:Html"
+    "-reporttypes:Html" `
+    "-classfilters:$classFilters"
 
 Start-Process "$reportDir\index.html"

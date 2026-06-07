@@ -12,6 +12,42 @@ namespace KooliProjekt.Application.UnitTests.Features.OperatsiooniTüübid
     public class ListOperatsiooniTyypQueryHandlerTests : TestBase
     {
         [Fact]
+        public async Task Handle_WhenSearchIsProvided_ReturnsMatchingOperatsiooniTyybid()
+        {
+            using var dbContext = GetDbContext();
+
+            await dbContext.OperatsiooniTüübid.AddAsync(new OperatsiooniTyyp
+            {
+                Nimi = "Õlivahetus",
+                Kirjeldus = "Mootoriõli vahetus"
+            });
+
+            await dbContext.OperatsiooniTüübid.AddAsync(new OperatsiooniTyyp
+            {
+                Nimi = "Rehvide vahetus",
+                Kirjeldus = "Rehvide vahetus ja tasakaalustamine"
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            var repo = new OperatsiooniTyypRepository(dbContext);
+            var handler = new ListOperatsiooniTyypQueryHandler(repo);
+
+            var result = await handler.Handle(new ListOperatsiooniTyypQuery
+            {
+                Page = 1,
+                PageSize = 10,
+                Search = "rehvide"
+            }, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Value);
+
+            var item = Assert.Single(result.Value.Results);
+            Assert.Equal("Rehvide vahetus", item.Nimi);
+        }
+        [Fact]
         public async Task Handle_WhenRequestIsNull_ThrowsArgumentNullException()
         {
             var repo = new Mock<IOperatsiooniTyypRepository>();

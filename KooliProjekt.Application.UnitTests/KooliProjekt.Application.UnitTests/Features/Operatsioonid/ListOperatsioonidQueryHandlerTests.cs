@@ -12,6 +12,75 @@ namespace KooliProjekt.Application.UnitTests.Features.Operatsioonid
     public class ListOperatsioonidQueryHandlerTests : TestBase
     {
         [Fact]
+        public async Task Handle_WhenSearchIsProvided_ReturnsMatchingOperatsioonid()
+        {
+            using var dbContext = GetDbContext();
+
+            var auto = new Auto
+            {
+                Tootja = "Toyota",
+                Mudel = "Corolla",
+                Numbrimark = "123ABC"
+            };
+
+            var tootaja = new Töötaja
+            {
+                Nimi = "Mati Maasikas",
+                Email = "mati@mail.com",
+                Roll = "Mehaanik"
+            };
+
+            var tyyp = new OperatsiooniTyyp
+            {
+                Nimi = "Õlivahetus",
+                Kirjeldus = "Mootoriõli vahetus"
+            };
+
+            await dbContext.Autos.AddAsync(auto);
+            await dbContext.Töötajad.AddAsync(tootaja);
+            await dbContext.OperatsiooniTüübid.AddAsync(tyyp);
+            await dbContext.SaveChangesAsync();
+
+            await dbContext.Operatsioonid.AddAsync(new Operatsioon
+            {
+                AutoId = auto.Id,
+                TöötajaId = tootaja.Id,
+                TüüpId = tyyp.Id,
+                Kuupäev = new DateTime(2026, 2, 12),
+                Staatus = "Valmis",
+                Maksumus = 100m
+            });
+
+            await dbContext.Operatsioonid.AddAsync(new Operatsioon
+            {
+                AutoId = auto.Id,
+                TöötajaId = tootaja.Id,
+                TüüpId = tyyp.Id,
+                Kuupäev = new DateTime(2026, 2, 13),
+                Staatus = "Ootel",
+                Maksumus = 50m
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            var repo = new OperatsioonRepository(dbContext);
+            var handler = new ListOperatsioonidQueryHandler(repo);
+
+            var result = await handler.Handle(new ListOperatsioonidQuery
+            {
+                Page = 1,
+                PageSize = 10,
+                Search = "valmis"
+            }, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.False(result.HasErrors);
+            Assert.NotNull(result.Value);
+
+            var item = Assert.Single(result.Value.Results);
+            Assert.Equal("Valmis", item.Staatus);
+        }
+        [Fact]
         public async Task Handle_WhenRequestIsNull_ThrowsArgumentNullException()
         {
             var repo = new Mock<IOperatsioonRepository>();
