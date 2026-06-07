@@ -1,0 +1,91 @@
+﻿<Window x:Class="KooliProjekt.WpfApplication.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KooliProjekt WPF"
+        Height="500"
+        Width="900">
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="320" />
+        </Grid.ColumnDefinitions>
+
+        <DataGrid Grid.Column="0"
+                  ItemsSource="{Binding Autos}"
+                  SelectedItem="{Binding SelectedAuto, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  Margin="0,0,10,0">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id"
+                                    Binding="{Binding Id}"
+                                    Width="60" />
+
+                <DataGridTextColumn Header="Tootja"
+                                    Binding="{Binding Tootja}"
+                                    Width="*" />
+
+                <DataGridTextColumn Header="Mudel"
+                                    Binding="{Binding Mudel}"
+                                    Width="*" />
+
+                <DataGridTextColumn Header="Numbrimark"
+                                    Binding="{Binding Numbrimark}"
+                                    Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Column="1">
+
+            <TextBlock Text="Auto andmed"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Margin="0,0,0,15" />
+
+            <TextBlock Text="Id" />
+            <TextBox Text="{Binding CurrentId}"
+                     IsReadOnly="True"
+                     Margin="0,0,0,10" />
+
+            <TextBlock Text="Tootja" />
+            <TextBox Text="{Binding CurrentTootja, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,10" />
+
+            <TextBlock Text="Mudel" />
+            <TextBox Text="{Binding CurrentMudel, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,10" />
+
+            <TextBlock Text="Numbrimark" />
+            <TextBox Text="{Binding CurrentNumbrimark, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,20" />
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,20">
+
+                <Button Content="Lisa uus"
+                        Width="90"
+                        Height="30"
+                        Margin="0,0,10,0"
+                        IsEnabled="False" />
+
+                <Button Content="Salvesta"
+                        Width="90"
+                        Height="30"
+                        Margin="0,0,10,0"
+                        IsEnabled="False" />
+
+                <Button Content="Kustuta"
+                        Width="90"
+                        Height="30"
+                        IsEnabled="False" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Window>
