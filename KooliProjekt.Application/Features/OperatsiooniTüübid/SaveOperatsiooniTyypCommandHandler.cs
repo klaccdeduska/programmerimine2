@@ -1,4 +1,7 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
@@ -17,6 +20,16 @@ namespace KooliProjekt.Application.Features.OperatsiooniTüübid
 
         public async Task<OperationResult<OperatsiooniTyyp>> Handle(SaveOperatsiooniTyypCommand request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Id < 0)
+            {
+                throw new ArgumentException("Id cannot be negative.", nameof(request.Id));
+            }
+
             var result = new OperationResult<OperatsiooniTyyp>();
             OperatsiooniTyyp entity;
 
@@ -31,7 +44,6 @@ namespace KooliProjekt.Application.Features.OperatsiooniTüübid
 
                 if (entity == null)
                 {
-                    result.Errors.Add("Operatsiooni tüüp not found");
                     return result;
                 }
             }

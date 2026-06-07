@@ -1,4 +1,7 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
@@ -17,6 +20,16 @@ namespace KooliProjekt.Application.Features.Operatsioonid
 
         public async Task<OperationResult<Operatsioon>> Handle(SaveOperatsioonCommand request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Id < 0)
+            {
+                throw new ArgumentException("Id cannot be negative.", nameof(request.Id));
+            }
+
             var result = new OperationResult<Operatsioon>();
             Operatsioon entity;
 
@@ -31,7 +44,6 @@ namespace KooliProjekt.Application.Features.Operatsioonid
 
                 if (entity == null)
                 {
-                    result.Errors.Add("Operatsioon not found");
                     return result;
                 }
             }
@@ -42,6 +54,7 @@ namespace KooliProjekt.Application.Features.Operatsioonid
             entity.Kuupäev = request.Kuupäev;
             entity.Staatus = request.Staatus;
 
+            // исправление ошибки decimal? -> decimal
             entity.Maksumus = request.Maksumus ?? 0m;
 
             await _repo.SaveChangesAsync();
@@ -49,6 +62,5 @@ namespace KooliProjekt.Application.Features.Operatsioonid
             result.Value = entity;
             return result;
         }
-
     }
 }

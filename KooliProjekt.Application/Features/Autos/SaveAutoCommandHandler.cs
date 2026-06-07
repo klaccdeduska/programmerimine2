@@ -1,4 +1,7 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
@@ -17,8 +20,17 @@ namespace KooliProjekt.Application.Features.Autos
 
         public async Task<OperationResult<Auto>> Handle(SaveAutoCommand request, CancellationToken ct)
         {
-            var result = new OperationResult<Auto>();
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
 
+            if (request.Id < 0)
+            {
+                throw new ArgumentException("Id cannot be negative.", nameof(request.Id));
+            }
+
+            var result = new OperationResult<Auto>();
             Auto entity;
 
             if (request.Id == 0)
@@ -32,7 +44,6 @@ namespace KooliProjekt.Application.Features.Autos
 
                 if (entity == null)
                 {
-                    result.Errors.Add("Auto not found");
                     return result;
                 }
             }

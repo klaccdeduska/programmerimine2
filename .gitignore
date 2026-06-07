@@ -398,3 +398,14 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /KooliProjekt.Application.UnitTests/BuildReports/Coverage
+
+# Test coverage generated files
+**/.tools/
+**/tools/
+**/TestResults/
+**/TestReport/
+
+# Visual Studio / build files
+**/bin/
+**/obj/
+.vs/
