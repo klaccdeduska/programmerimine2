@@ -1,4 +1,7 @@
-﻿using KooliProjekt.Application.Data.Repositories;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 
@@ -16,12 +19,22 @@ namespace KooliProjekt.Application.Features.Tootajad
 
         public async Task<OperationResult<bool>> Handle(DeleteTootajaCommand request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<bool>();
 
+            if (request.Id <= 0)
+            {
+                return result;
+            }
+
             var entity = await _repo.GetByIdAsync(request.Id);
+
             if (entity == null)
             {
-                result.Errors.Add("Töötaja not found");
                 return result;
             }
 

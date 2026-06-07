@@ -1,4 +1,7 @@
-﻿using KooliProjekt.Application.Data.Repositories;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 
@@ -16,16 +19,26 @@ namespace KooliProjekt.Application.Features.Autos
 
         public async Task<OperationResult<bool>> Handle(DeleteAutoCommand request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<bool>();
 
-            var entity = await _repo.GetByIdAsync(request.Id);
-            if (entity == null)
+            if (request.Id <= 0)
             {
-                result.Errors.Add("Auto not found");
                 return result;
             }
 
-            _repo.Remove(entity);          // ВАЖНО: именно _repo.Remove
+            var entity = await _repo.GetByIdAsync(request.Id);
+
+            if (entity == null)
+            {
+                return result;
+            }
+
+            _repo.Remove(entity);
             await _repo.SaveChangesAsync();
 
             result.Value = true;
