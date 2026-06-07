@@ -7,7 +7,29 @@ namespace KooliProjekt.WindowsForms
 {
     public partial class Form1 : Form, IAutosView
     {
-        public AutosPresenter Presenter { private get; set; }
+        private AutosPresenter _presenter;
+
+        public AutosPresenter Presenter
+        {
+            set
+            {
+                if (_presenter != null)
+                {
+                    addButton.Click -= _presenter.AddCommand_Click;
+                    saveButton.Click -= _presenter.SaveCommand_Click;
+                    deleteButton.Click -= _presenter.DeleteCommand_Click;
+                }
+
+                _presenter = value;
+
+                if (_presenter != null)
+                {
+                    addButton.Click += _presenter.AddCommand_Click;
+                    saveButton.Click += _presenter.SaveCommand_Click;
+                    deleteButton.Click += _presenter.DeleteCommand_Click;
+                }
+            }
+        }
 
         public Form1()
         {
@@ -61,9 +83,9 @@ namespace KooliProjekt.WindowsForms
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            if (Presenter != null)
+            if (_presenter != null)
             {
-                await Presenter.LoadDataAsync();
+                await _presenter.LoadDataAsync();
             }
         }
 
@@ -71,31 +93,7 @@ namespace KooliProjekt.WindowsForms
         {
             var auto = dataGridView1.CurrentRow?.DataBoundItem as AutoModel;
 
-            Presenter?.SelectionChanged(auto);
-        }
-
-        private async void addButton_Click(object sender, EventArgs e)
-        {
-            if (Presenter != null)
-            {
-                await Presenter.AddNewAsync();
-            }
-        }
-
-        private async void saveButton_Click(object sender, EventArgs e)
-        {
-            if (Presenter != null)
-            {
-                await Presenter.SaveAsync();
-            }
-        }
-
-        private async void deleteButton_Click(object sender, EventArgs e)
-        {
-            if (Presenter != null)
-            {
-                await Presenter.DeleteAsync();
-            }
+            _presenter?.SelectionChanged(auto);
         }
 
         public void ShowError(OperationResult result)
@@ -136,10 +134,10 @@ namespace KooliProjekt.WindowsForms
                 MessageBoxIcon.Information);
         }
 
-        public bool Confirm(string message)
+        public bool ConfirmDelete()
         {
             return MessageBox.Show(
-                message,
+                $"Kas kustutada auto {CurrentTootja} {CurrentMudel}?",
                 "Kinnitus",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question) == DialogResult.Yes;

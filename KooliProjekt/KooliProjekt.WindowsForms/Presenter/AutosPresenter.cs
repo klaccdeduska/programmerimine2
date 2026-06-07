@@ -41,7 +41,22 @@ namespace KooliProjekt.WindowsForms.Presenter
             _view.CurrentNumbrimark = auto.Numbrimark;
         }
 
-        public async Task AddNewAsync()
+        public async void AddCommand_Click(object sender, EventArgs e)
+        {
+            await AddNew();
+        }
+
+        public async void SaveCommand_Click(object sender, EventArgs e)
+        {
+            await Save();
+        }
+
+        public async void DeleteCommand_Click(object sender, EventArgs e)
+        {
+            await Delete();
+        }
+
+        public async Task AddNew()
         {
             var auto = new AutoModel
             {
@@ -62,7 +77,7 @@ namespace KooliProjekt.WindowsForms.Presenter
             await LoadDataAsync();
         }
 
-        public async Task SaveAsync()
+        public async Task Save()
         {
             var auto = new AutoModel
             {
@@ -83,7 +98,7 @@ namespace KooliProjekt.WindowsForms.Presenter
             await LoadDataAsync();
         }
 
-        public async Task DeleteAsync()
+        public async Task Delete()
         {
             if (_view.CurrentId <= 0)
             {
@@ -91,10 +106,7 @@ namespace KooliProjekt.WindowsForms.Presenter
                 return;
             }
 
-            var confirmed = _view.Confirm(
-                $"Kas kustutada auto {_view.CurrentTootja} {_view.CurrentMudel}?");
-
-            if (!confirmed)
+            if (!_view.ConfirmDelete())
             {
                 return;
             }

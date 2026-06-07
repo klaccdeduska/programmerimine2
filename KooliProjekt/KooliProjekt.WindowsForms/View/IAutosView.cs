@@ -13,6 +13,6 @@ namespace KooliProjekt.WindowsForms.View
 
         void ShowError(OperationResult result);
         void ShowMessage(string message);
-        bool Confirm(string message);
+        bool ConfirmDelete();
     }
 }

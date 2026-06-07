@@ -4,23 +4,23 @@
     {
         private System.ComponentModel.IContainer components = null;
 
-        private DataGridView dataGridView1;
-        private Panel topPanel;
-        private Panel editPanel;
+        internal DataGridView dataGridView1;
+        internal Panel topPanel;
+        internal Panel editPanel;
 
-        private Button addButton;
-        private Button saveButton;
-        private Button deleteButton;
+        internal Button addButton;
+        internal Button saveButton;
+        internal Button deleteButton;
 
-        private Label idLabel;
-        private Label tootjaLabel;
-        private Label mudelLabel;
-        private Label numbrimarkLabel;
+        internal Label idLabel;
+        internal Label tootjaLabel;
+        internal Label mudelLabel;
+        internal Label numbrimarkLabel;
 
-        private TextBox idTextBox;
-        private TextBox tootjaTextBox;
-        private TextBox mudelTextBox;
-        private TextBox numbrimarkTextBox;
+        internal TextBox idTextBox;
+        internal TextBox tootjaTextBox;
+        internal TextBox mudelTextBox;
+        internal TextBox numbrimarkTextBox;
 
         protected override void Dispose(bool disposing)
         {
@@ -66,17 +66,14 @@
             addButton.Location = new Point(10, 8);
             addButton.Size = new Size(120, 30);
             addButton.Text = "Lisa uus";
-            addButton.Click += addButton_Click;
 
             saveButton.Location = new Point(140, 8);
             saveButton.Size = new Size(120, 30);
             saveButton.Text = "Salvesta";
-            saveButton.Click += saveButton_Click;
 
             deleteButton.Location = new Point(270, 8);
             deleteButton.Size = new Size(120, 30);
             deleteButton.Text = "Kustuta";
-            deleteButton.Click += deleteButton_Click;
 
             editPanel.Dock = DockStyle.Top;
             editPanel.Height = 95;
