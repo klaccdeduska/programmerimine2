@@ -1,0 +1,76 @@
+﻿@page "/autos"
+
+@using KooliProjekt.BlazorWASM.Models
+@using KooliProjekt.BlazorWASM.Api
+@inject IApiClient ApiClient
+
+<h3>Autod</h3>
+
+@if (isLoading)
+{
+    <p>Laen andmeid...</p>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+else if (autos.Count == 0)
+{
+    <p>Andmeid ei leitud.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Tootja</th>
+                <th>Mudel</th>
+                <th>Numbrimark</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var auto in autos)
+            {
+                <tr>
+                    <td>@auto.Id</td>
+                    <td>@auto.Tootja</td>
+                    <td>@auto.Mudel</td>
+                    <td>@auto.Numbrimark</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<AutoModel> autos = new();
+    private bool isLoading = true;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = "";
+
+            autos = await ApiClient.GetAutosAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Andmete laadimine ebaõnnestus: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

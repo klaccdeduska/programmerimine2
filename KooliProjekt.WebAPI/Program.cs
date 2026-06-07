@@ -42,6 +42,17 @@ namespace KooliProjekt.WebAPI
                 config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("BlazorCorsPolicy", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -55,6 +66,8 @@ namespace KooliProjekt.WebAPI
             }
 
             app.UseAuthorization();
+
+            app.UseCors("BlazorCorsPolicy");
 
             app.MapControllers();
 
