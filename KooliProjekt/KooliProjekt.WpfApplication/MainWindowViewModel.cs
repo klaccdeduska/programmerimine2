@@ -1,11 +1,10 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Net.Http;
 using System.Text;
 
 namespace KooliProjekt.WpfApplication
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : NotifyPropertyChangedBase
     {
         private readonly IApiClient _apiClient;
 
@@ -15,6 +14,14 @@ namespace KooliProjekt.WpfApplication
         private string _currentMudel;
         private string _currentNumbrimark;
         private string _errorMessage;
+
+        public MainWindowViewModel()
+            : this(new ApiClient(new HttpClient
+            {
+                BaseAddress = new Uri("http://localhost:5086/")
+            }))
+        {
+        }
 
         public MainWindowViewModel(IApiClient apiClient)
         {
@@ -28,8 +35,13 @@ namespace KooliProjekt.WpfApplication
             get => _selectedAuto;
             set
             {
+                if (_selectedAuto == value)
+                {
+                    return;
+                }
+
                 _selectedAuto = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
 
                 if (value == null)
                 {
@@ -52,8 +64,13 @@ namespace KooliProjekt.WpfApplication
             get => _currentId;
             set
             {
+                if (_currentId == value)
+                {
+                    return;
+                }
+
                 _currentId = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
@@ -62,8 +79,18 @@ namespace KooliProjekt.WpfApplication
             get => _currentTootja;
             set
             {
+                if (_currentTootja == value)
+                {
+                    return;
+                }
+
                 _currentTootja = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
+
+                if (SelectedAuto != null && SelectedAuto.Tootja != value)
+                {
+                    SelectedAuto.Tootja = value;
+                }
             }
         }
 
@@ -72,8 +99,18 @@ namespace KooliProjekt.WpfApplication
             get => _currentMudel;
             set
             {
+                if (_currentMudel == value)
+                {
+                    return;
+                }
+
                 _currentMudel = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
+
+                if (SelectedAuto != null && SelectedAuto.Mudel != value)
+                {
+                    SelectedAuto.Mudel = value;
+                }
             }
         }
 
@@ -82,8 +119,18 @@ namespace KooliProjekt.WpfApplication
             get => _currentNumbrimark;
             set
             {
+                if (_currentNumbrimark == value)
+                {
+                    return;
+                }
+
                 _currentNumbrimark = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
+
+                if (SelectedAuto != null && SelectedAuto.Numbrimark != value)
+                {
+                    SelectedAuto.Numbrimark = value;
+                }
             }
         }
 
@@ -92,8 +139,13 @@ namespace KooliProjekt.WpfApplication
             get => _errorMessage;
             set
             {
+                if (_errorMessage == value)
+                {
+                    return;
+                }
+
                 _errorMessage = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
@@ -142,13 +194,6 @@ namespace KooliProjekt.WpfApplication
             }
 
             return message.ToString();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
