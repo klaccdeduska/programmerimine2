@@ -3,17 +3,25 @@
 @using KooliProjekt.BlazorWASM.Models
 @using KooliProjekt.BlazorWASM.Api
 @inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
 
 <h3>Autod</h3>
+
+<button class="btn btn-primary mb-3" @onclick="AddNew">
+    Add new
+</button>
 
 @if (isLoading)
 {
     <p>Laen andmeid...</p>
 }
-else if (!string.IsNullOrWhiteSpace(errorMessage))
+else if (errors.Any())
 {
     <div class="alert alert-danger">
-        @errorMessage
+        @foreach (var error in errors)
+        {
+            <div>@error</div>
+        }
     </div>
 }
 else if (autos.Count == 0)
@@ -29,6 +37,7 @@ else
                 <th>Tootja</th>
                 <th>Mudel</th>
                 <th>Numbrimark</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -39,6 +48,12 @@ else
                     <td>@auto.Tootja</td>
                     <td>@auto.Mudel</td>
                     <td>@auto.Numbrimark</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary"
+                                @onclick="() => Edit(auto.Id)">
+                            Edit
+                        </button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -47,8 +62,8 @@ else
 
 @code {
     private List<AutoModel> autos = new();
+    private List<string> errors = new();
     private bool isLoading = true;
-    private string errorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,20 +72,37 @@ else
 
     private async Task LoadData()
     {
-        try
-        {
-            isLoading = true;
-            errorMessage = "";
+        isLoading = true;
+        errors.Clear();
 
-            autos = await ApiClient.GetAutosAsync();
-        }
-        catch (Exception ex)
+        var result = await ApiClient.GetAutosAsync();
+
+        if (result.HasErrors)
         {
-            errorMessage = "Andmete laadimine ebaõnnestus: " + ex.Message;
+            errors.AddRange(result.Errors);
+
+            foreach (var propertyError in result.PropertyErrors)
+            {
+                errors.AddRange(propertyError.Value);
+            }
+
+            autos = new List<AutoModel>();
         }
-        finally
+        else
         {
-            isLoading = false;
+            autos = result.Value ?? new List<AutoModel>();
         }
+
+        isLoading = false;
+    }
+
+    private void AddNew()
+    {
+        NavigationManager.NavigateTo("/autos/edit");
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"/autos/edit/{id}");
     }
 }

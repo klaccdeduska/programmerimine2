@@ -1,0 +1,184 @@
+﻿@page "/autos/edit"
+@page "/autos/edit/{Id:int}"
+
+@using Microsoft.AspNetCore.Components.Forms
+@using KooliProjekt.BlazorWASM.Models
+@using KooliProjekt.BlazorWASM.Api
+
+@inject IApiClient ApiClient
+@inject NavigationManager NavigationManager
+
+<h3>@Title</h3>
+
+@if (isLoading)
+{
+    <p>Laen andmeid...</p>
+}
+else
+{
+    <EditForm Model="@auto" OnSubmit="@Save">
+
+        @if (globalErrors.Any())
+        {
+            <div class="alert alert-danger">
+                @foreach (var error in globalErrors)
+                {
+                    <div>@error</div>
+                }
+            </div>
+        }
+
+        <div class="mb-3">
+            <label class="form-label">Id</label>
+            <InputNumber class="form-control"
+                         @bind-Value="auto.Id"
+                         disabled />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tootja</label>
+            <InputText class="form-control"
+                       @bind-Value="auto.Tootja" />
+
+            @foreach (var error in GetPropertyErrors(nameof(AutoModel.Tootja)))
+            {
+                <div class="text-danger">@error</div>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Mudel</label>
+            <InputText class="form-control"
+                       @bind-Value="auto.Mudel" />
+
+            @foreach (var error in GetPropertyErrors(nameof(AutoModel.Mudel)))
+            {
+                <div class="text-danger">@error</div>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Numbrimark</label>
+            <InputText class="form-control"
+                       @bind-Value="auto.Numbrimark" />
+
+            @foreach (var error in GetPropertyErrors(nameof(AutoModel.Numbrimark)))
+            {
+                <div class="text-danger">@error</div>
+            }
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary ms-2"
+                @onclick="Cancel">
+            Cancel
+        </button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private AutoModel auto = new();
+    private bool isLoading = true;
+
+    private List<string> globalErrors = new();
+    private Dictionary<string, List<string>> propertyErrors = new();
+
+    private string Title => Id.GetValueOrDefault() > 0
+        ? "Edit auto"
+        : "Add auto";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        ClearErrors();
+
+        if (Id.GetValueOrDefault() > 0)
+        {
+            var result = await ApiClient.GetAutoAsync(Id.Value);
+
+            if (result.HasErrors)
+            {
+                SetErrors(result);
+            }
+            else
+            {
+                auto = result.Value ?? new AutoModel();
+            }
+        }
+        else
+        {
+            auto = new AutoModel
+            {
+                Id = 0,
+                Tootja = "",
+                Mudel = "",
+                Numbrimark = ""
+            };
+        }
+
+        isLoading = false;
+    }
+
+    private async Task Save(EditContext context)
+    {
+        ClearErrors();
+
+        var result = await ApiClient.SaveAutoAsync(auto);
+
+        if (result.HasErrors)
+        {
+            SetErrors(result);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/autos");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/autos");
+    }
+
+    private void ClearErrors()
+    {
+        globalErrors.Clear();
+        propertyErrors.Clear();
+    }
+
+    private void SetErrors(OperationResult result)
+    {
+        globalErrors = result.Errors.ToList();
+
+        propertyErrors = result.PropertyErrors.ToDictionary(
+            x => x.Key,
+            x => x.Value);
+    }
+
+    private IEnumerable<string> GetPropertyErrors(string propertyName)
+    {
+        foreach (var propertyError in propertyErrors)
+        {
+            if (string.Equals(
+                    propertyError.Key,
+                    propertyName,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return propertyError.Value;
+            }
+        }
+
+        return Enumerable.Empty<string>();
+    }
+}
