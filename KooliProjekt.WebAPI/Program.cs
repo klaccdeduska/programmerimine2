@@ -1,17 +1,13 @@
 ﻿using FluentValidation;
 using KooliProjekt.Application.Behaviors;
 using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Results;
-using KooliProjekt.Application.Data.Repositories;
-using MediatR;
-using FluentValidation;
-using KooliProjekt.Application.Behaviors;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Results;
 using KooliProjekt.Application.Data.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Reflection;
 
 namespace KooliProjekt.WebAPI
@@ -62,10 +58,18 @@ namespace KooliProjekt.WebAPI
 
             app.MapControllers();
 
-            using (var scope = app.Services.CreateScope())
+            // ВАЖНО:
+            // В интеграционных тестах используется InMemoryDatabase.
+            // SeedData.Generate вызывает db.Database.Migrate(),
+            // а Migrate не работает с InMemory.
+            // Поэтому в Testing среде SeedData не запускаем.
+            if (!app.Environment.IsEnvironment("Testing"))
             {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                SeedData.Generate(db);
+                using (var scope = app.Services.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    SeedData.Generate(db);
+                }
             }
 
             app.Run();
