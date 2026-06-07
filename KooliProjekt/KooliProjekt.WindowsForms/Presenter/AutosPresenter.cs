@@ -28,10 +28,14 @@ namespace KooliProjekt.WindowsForms.Presenter
             _view.Autos = result.Value ?? new List<AutoModel>();
         }
 
-        public void SelectionChanged(AutoModel auto)
+        public void SetSelection(AutoModel auto)
         {
             if (auto == null)
             {
+                _view.CurrentId = 0;
+                _view.CurrentTootja = "";
+                _view.CurrentMudel = "";
+                _view.CurrentNumbrimark = "";
                 return;
             }
 
@@ -39,6 +43,11 @@ namespace KooliProjekt.WindowsForms.Presenter
             _view.CurrentTootja = auto.Tootja;
             _view.CurrentMudel = auto.Mudel;
             _view.CurrentNumbrimark = auto.Numbrimark;
+        }
+
+        public void SelectionChanged(AutoModel auto)
+        {
+            SetSelection(auto);
         }
 
         public async void AddCommand_Click(object sender, EventArgs e)
