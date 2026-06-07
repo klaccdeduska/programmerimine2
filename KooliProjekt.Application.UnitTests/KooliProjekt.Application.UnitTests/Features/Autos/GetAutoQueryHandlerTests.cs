@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
@@ -11,16 +12,31 @@ namespace KooliProjekt.Application.UnitTests.Features.Autos
     public class GetAutoQueryHandlerTests
     {
         [Fact]
-        public async Task Handle_WhenRequestIsNull_ReturnsResultWithNullValue()
+        public async Task Handle_WhenRequestIsNull_ThrowsArgumentNullException()
         {
             var repo = new Mock<IAutoRepository>();
             var handler = new GetAutoQueryHandler(repo.Object);
 
-            var result = await handler.Handle(null, CancellationToken.None);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                handler.Handle(null, CancellationToken.None));
+
+            repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-10)]
+        public async Task Handle_WhenRequestIdIsZeroOrLess_ReturnsNullAndDoesNotQueryRepository(int id)
+        {
+            var repo = new Mock<IAutoRepository>();
+            var handler = new GetAutoQueryHandler(repo.Object);
+
+            var result = await handler.Handle(new GetAutoQuery { Id = id }, CancellationToken.None);
 
             Assert.NotNull(result);
+            Assert.False(result.HasErrors);
             Assert.Null(result.Value);
-            Assert.Empty(result.Errors);
+
             repo.Verify(x => x.GetByIdAsync(It.IsAny<int>()), Times.Never);
         }
 
@@ -43,16 +59,18 @@ namespace KooliProjekt.Application.UnitTests.Features.Autos
             var result = await handler.Handle(new GetAutoQuery { Id = 1 }, CancellationToken.None);
 
             Assert.NotNull(result);
+            Assert.False(result.HasErrors);
             Assert.NotNull(result.Value);
             Assert.Equal(1, result.Value.Id);
             Assert.Equal("Toyota", result.Value.Tootja);
             Assert.Equal("Corolla", result.Value.Mudel);
             Assert.Equal("123ABC", result.Value.Numbrimark);
-            Assert.Empty(result.Errors);
+
+            repo.Verify(x => x.GetByIdAsync(1), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_WhenAutoDoesNotExist_ReturnsResultWithNullValue()
+        public async Task Handle_WhenAutoDoesNotExist_ReturnsNullValue()
         {
             var repo = new Mock<IAutoRepository>();
 
@@ -64,8 +82,10 @@ namespace KooliProjekt.Application.UnitTests.Features.Autos
             var result = await handler.Handle(new GetAutoQuery { Id = 99 }, CancellationToken.None);
 
             Assert.NotNull(result);
+            Assert.False(result.HasErrors);
             Assert.Null(result.Value);
-            Assert.Empty(result.Errors);
+
+            repo.Verify(x => x.GetByIdAsync(99), Times.Once);
         }
     }
 }

@@ -1,6 +1,4 @@
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Paging;
@@ -12,6 +10,7 @@ namespace KooliProjekt.Application.Features.Autos
     public class ListAutosQueryHandler :
         IRequestHandler<ListAutosQuery, OperationResult<PagedResult<Auto>>>
     {
+        private const int MaxPageSize = 100;
         private readonly IAutoRepository _repo;
 
         public ListAutosQueryHandler(IAutoRepository repo)
@@ -19,14 +18,33 @@ namespace KooliProjekt.Application.Features.Autos
             _repo = repo;
         }
 
-        public async Task<OperationResult<PagedResult<Auto>>> Handle(
-            ListAutosQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<PagedResult<Auto>>> Handle(ListAutosQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Page <= 0)
+            {
+                throw new ArgumentException("Page must be greater than zero.", nameof(request.Page));
+            }
+
+            if (request.PageSize <= 0)
+            {
+                throw new ArgumentException("PageSize must be greater than zero.", nameof(request.PageSize));
+            }
+
+            if (request.PageSize > MaxPageSize)
+            {
+                throw new ArgumentException($"PageSize must be less than or equal to {MaxPageSize}.", nameof(request.PageSize));
+            }
+
             var result = new OperationResult<PagedResult<Auto>>();
 
             result.Value = await _repo
                 .Query()
-                .OrderBy(a => a.Id)
+                .OrderBy(x => x.Id)
                 .GetPagedAsync(request.Page, request.PageSize);
 
             return result;

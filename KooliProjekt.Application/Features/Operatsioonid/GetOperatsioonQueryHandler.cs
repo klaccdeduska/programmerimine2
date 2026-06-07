@@ -15,13 +15,16 @@ namespace KooliProjekt.Application.Features.Operatsioonid
             _repo = repo;
         }
 
-        public async Task<OperationResult<OperatsioonDto>> Handle(
-            GetOperatsioonQuery request,
-            CancellationToken ct)
+        public async Task<OperationResult<OperatsioonDto>> Handle(GetOperatsioonQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<OperatsioonDto>();
 
-            if (request == null)
+            if (request.Id <= 0)
             {
                 return result;
             }

@@ -17,9 +17,14 @@ namespace KooliProjekt.Application.Features.Autos
 
         public async Task<OperationResult<AutoDto>> Handle(GetAutoQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<AutoDto>();
 
-            if (request == null)
+            if (request.Id <= 0)
             {
                 return result;
             }

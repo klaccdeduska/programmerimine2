@@ -15,13 +15,16 @@ namespace KooliProjekt.Application.Features.OperatsiooniTüübid
             _repo = repo;
         }
 
-        public async Task<OperationResult<OperatsiooniTyypDto>> Handle(
-            GetOperatsiooniTyypQuery request,
-            CancellationToken ct)
+        public async Task<OperationResult<OperatsiooniTyypDto>> Handle(GetOperatsiooniTyypQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<OperatsiooniTyypDto>();
 
-            if (request == null)
+            if (request.Id <= 0)
             {
                 return result;
             }

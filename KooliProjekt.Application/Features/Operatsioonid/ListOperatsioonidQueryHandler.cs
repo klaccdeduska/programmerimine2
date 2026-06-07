@@ -1,31 +1,50 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System.Linq;
+using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Data.Repositories;
 using KooliProjekt.Application.Infrastructure.Paging;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Operatsioonid
 {
     public class ListOperatsioonidQueryHandler :
         IRequestHandler<ListOperatsioonidQuery, OperationResult<PagedResult<Operatsioon>>>
     {
-        private readonly ApplicationDbContext _db;
+        private const int MaxPageSize = 100;
+        private readonly IOperatsioonRepository _repo;
 
-        public ListOperatsioonidQueryHandler(ApplicationDbContext db)
+        public ListOperatsioonidQueryHandler(IOperatsioonRepository repo)
         {
-            _db = db;
+            _repo = repo;
         }
 
-        public async Task<OperationResult<PagedResult<Operatsioon>>> Handle(
-            ListOperatsioonidQuery request, CancellationToken ct)
+        public async Task<OperationResult<PagedResult<Operatsioon>>> Handle(ListOperatsioonidQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Page <= 0)
+            {
+                throw new ArgumentException("Page must be greater than zero.", nameof(request.Page));
+            }
+
+            if (request.PageSize <= 0)
+            {
+                throw new ArgumentException("PageSize must be greater than zero.", nameof(request.PageSize));
+            }
+
+            if (request.PageSize > MaxPageSize)
+            {
+                throw new ArgumentException($"PageSize must be less than or equal to {MaxPageSize}.", nameof(request.PageSize));
+            }
+
             var result = new OperationResult<PagedResult<Operatsioon>>();
 
-            result.Value = await _db.Operatsioonid
-                .OrderBy(o => o.Kuupäev)
-                .Include(o => o.Auto)
-                .Include(o => o.Töötaja)
-                .Include(o => o.Tüüp)
+            result.Value = await _repo
+                .Query()
+                .OrderBy(x => x.Id)
                 .GetPagedAsync(request.Page, request.PageSize);
 
             return result;

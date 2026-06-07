@@ -17,9 +17,14 @@ namespace KooliProjekt.Application.Features.Tootajad
 
         public async Task<OperationResult<TootajaDto>> Handle(GetTootajaQuery request, CancellationToken ct)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var result = new OperationResult<TootajaDto>();
 
-            if (request == null)
+            if (request.Id <= 0)
             {
                 return result;
             }
