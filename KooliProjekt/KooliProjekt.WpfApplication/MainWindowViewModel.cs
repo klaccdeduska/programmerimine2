@@ -1,12 +1,14 @@
 ﻿using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Text;
+using System.Windows.Input;
 
 namespace KooliProjekt.WpfApplication
 {
     public class MainWindowViewModel : NotifyPropertyChangedBase
     {
         private readonly IApiClient _apiClient;
+        private readonly IDialogProvider _dialogProvider;
 
         private AutoModel _selectedAuto;
         private int _currentId;
@@ -16,19 +18,30 @@ namespace KooliProjekt.WpfApplication
         private string _errorMessage;
 
         public MainWindowViewModel()
-            : this(new ApiClient(new HttpClient
-            {
-                BaseAddress = new Uri("http://localhost:5086/")
-            }))
+            : this(
+                new ApiClient(new HttpClient
+                {
+                    BaseAddress = new Uri("http://localhost:5086/")
+                }),
+                new DialogProvider())
         {
         }
 
-        public MainWindowViewModel(IApiClient apiClient)
+        public MainWindowViewModel(IApiClient apiClient, IDialogProvider dialogProvider)
         {
             _apiClient = apiClient;
+            _dialogProvider = dialogProvider;
+
+            AddNewCommand = new RelayCommand(async _ => await AddNewAsync());
+            SaveCommand = new RelayCommand(async _ => await SaveAsync());
+            DeleteCommand = new RelayCommand(async _ => await DeleteAsync());
         }
 
         public ObservableCollection<AutoModel> Autos { get; } = new();
+
+        public ICommand AddNewCommand { get; }
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
 
         public AutoModel SelectedAuto
         {
@@ -155,7 +168,7 @@ namespace KooliProjekt.WpfApplication
 
             if (result.HasErrors)
             {
-                ErrorMessage = FormatErrors(result);
+                ShowError(result);
                 return;
             }
 
@@ -169,6 +182,85 @@ namespace KooliProjekt.WpfApplication
             }
 
             SelectedAuto = Autos.FirstOrDefault();
+        }
+
+        private async Task AddNewAsync()
+        {
+            var auto = new AutoModel
+            {
+                Id = 0,
+                Tootja = "Uus tootja",
+                Mudel = "Uus mudel",
+                Numbrimark = "NEW" + DateTime.Now.Ticks.ToString()[^4..]
+            };
+
+            var result = await _apiClient.SaveAutoAsync(auto);
+
+            if (result.HasErrors)
+            {
+                ShowError(result);
+                return;
+            }
+
+            await LoadDataAsync();
+        }
+
+        private async Task SaveAsync()
+        {
+            var auto = new AutoModel
+            {
+                Id = CurrentId,
+                Tootja = CurrentTootja,
+                Mudel = CurrentMudel,
+                Numbrimark = CurrentNumbrimark
+            };
+
+            var result = await _apiClient.SaveAutoAsync(auto);
+
+            if (result.HasErrors)
+            {
+                ShowError(result);
+                return;
+            }
+
+            await LoadDataAsync();
+        }
+
+        private async Task DeleteAsync()
+        {
+            if (CurrentId <= 0 || SelectedAuto == null)
+            {
+                _dialogProvider.ShowMessage("Vali rida, mida kustutada.");
+                return;
+            }
+
+            if (!_dialogProvider.ConfirmDelete(SelectedAuto))
+            {
+                return;
+            }
+
+            var result = await _apiClient.DeleteAutoAsync(CurrentId);
+
+            if (result.HasErrors)
+            {
+                ShowError(result);
+                return;
+            }
+
+            CurrentId = 0;
+            CurrentTootja = "";
+            CurrentMudel = "";
+            CurrentNumbrimark = "";
+
+            await LoadDataAsync();
+        }
+
+        private void ShowError(OperationResult result)
+        {
+            var message = FormatErrors(result);
+
+            ErrorMessage = message;
+            _dialogProvider.ShowError(message);
         }
 
         private string FormatErrors(OperationResult result)

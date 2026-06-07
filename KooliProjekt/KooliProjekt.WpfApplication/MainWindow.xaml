@@ -48,20 +48,20 @@
                        Margin="0,0,0,15" />
 
             <TextBlock Text="Id" />
-            <TextBox Text="{Binding CurrentId}"
+            <TextBox Text="{Binding CurrentId, Mode=TwoWay}"
                      IsReadOnly="True"
                      Margin="0,0,0,10" />
 
             <TextBlock Text="Tootja" />
-            <TextBox Text="{Binding CurrentTootja, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding CurrentTootja, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,0,10" />
 
             <TextBlock Text="Mudel" />
-            <TextBox Text="{Binding CurrentMudel, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding CurrentMudel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,0,10" />
 
             <TextBlock Text="Numbrimark" />
-            <TextBox Text="{Binding CurrentNumbrimark, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding CurrentNumbrimark, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,0,0,20" />
 
             <StackPanel Orientation="Horizontal"
@@ -71,18 +71,18 @@
                         Width="90"
                         Height="30"
                         Margin="0,0,10,0"
-                        IsEnabled="False" />
+                        Command="{Binding AddNewCommand}" />
 
                 <Button Content="Salvesta"
                         Width="90"
                         Height="30"
                         Margin="0,0,10,0"
-                        IsEnabled="False" />
+                        Command="{Binding SaveCommand}" />
 
                 <Button Content="Kustuta"
                         Width="90"
                         Height="30"
-                        IsEnabled="False" />
+                        Command="{Binding DeleteCommand}" />
             </StackPanel>
 
             <TextBlock Text="{Binding ErrorMessage}"

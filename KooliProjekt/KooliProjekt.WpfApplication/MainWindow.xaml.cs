@@ -17,8 +17,9 @@ namespace KooliProjekt.WpfApplication
             };
 
             IApiClient apiClient = new ApiClient(httpClient);
+            IDialogProvider dialogProvider = new DialogProvider();
 
-            _viewModel = new MainWindowViewModel(apiClient);
+            _viewModel = new MainWindowViewModel(apiClient, dialogProvider);
 
             DataContext = _viewModel;
 
