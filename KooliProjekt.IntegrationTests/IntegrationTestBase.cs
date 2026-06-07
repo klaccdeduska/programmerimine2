@@ -23,25 +23,41 @@ namespace KooliProjekt.IntegrationTests
             Client = factory.CreateClient();
         }
 
+        protected async Task ExecuteDbAsync(Func<ApplicationDbContext, Task> action)
+        {
+            using var scope = Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await action(db);
+        }
+
+        protected async Task<T> ExecuteDbAsync<T>(Func<ApplicationDbContext, Task<T>> action)
+        {
+            using var scope = Factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            return await action(db);
+        }
+
         protected async Task<int> AddAutoAsync(
             string tootja = "Toyota",
             string mudel = "Corolla",
             string numbrimark = "123ABC")
         {
-            using var scope = Factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var auto = new Auto
+            return await ExecuteDbAsync(async db =>
             {
-                Tootja = tootja,
-                Mudel = mudel,
-                Numbrimark = numbrimark
-            };
+                var auto = new Auto
+                {
+                    Tootja = tootja,
+                    Mudel = mudel,
+                    Numbrimark = numbrimark
+                };
 
-            await db.Autos.AddAsync(auto);
-            await db.SaveChangesAsync();
+                await db.Autos.AddAsync(auto);
+                await db.SaveChangesAsync();
 
-            return auto.Id;
+                return auto.Id;
+            });
         }
 
         protected async Task<int> AddTootajaAsync(
@@ -49,85 +65,85 @@ namespace KooliProjekt.IntegrationTests
             string email = "mati@mail.com",
             string roll = "Mehaanik")
         {
-            using var scope = Factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var tootaja = new Töötaja
+            return await ExecuteDbAsync(async db =>
             {
-                Nimi = nimi,
-                Email = email,
-                Roll = roll
-            };
+                var tootaja = new Töötaja
+                {
+                    Nimi = nimi,
+                    Email = email,
+                    Roll = roll
+                };
 
-            await db.Töötajad.AddAsync(tootaja);
-            await db.SaveChangesAsync();
+                await db.Töötajad.AddAsync(tootaja);
+                await db.SaveChangesAsync();
 
-            return tootaja.Id;
+                return tootaja.Id;
+            });
         }
 
         protected async Task<int> AddOperatsiooniTyypAsync(
             string nimi = "Õlivahetus",
             string kirjeldus = "Mootoriõli vahetus")
         {
-            using var scope = Factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var tyyp = new OperatsiooniTyyp
+            return await ExecuteDbAsync(async db =>
             {
-                Nimi = nimi,
-                Kirjeldus = kirjeldus
-            };
+                var tyyp = new OperatsiooniTyyp
+                {
+                    Nimi = nimi,
+                    Kirjeldus = kirjeldus
+                };
 
-            await db.OperatsiooniTüübid.AddAsync(tyyp);
-            await db.SaveChangesAsync();
+                await db.OperatsiooniTüübid.AddAsync(tyyp);
+                await db.SaveChangesAsync();
 
-            return tyyp.Id;
+                return tyyp.Id;
+            });
         }
 
         protected async Task<int> AddOperatsioonAsync()
         {
-            using var scope = Factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var auto = new Auto
+            return await ExecuteDbAsync(async db =>
             {
-                Tootja = "Toyota",
-                Mudel = "Corolla",
-                Numbrimark = "123ABC"
-            };
+                var auto = new Auto
+                {
+                    Tootja = "Toyota",
+                    Mudel = "Corolla",
+                    Numbrimark = Guid.NewGuid().ToString("N")[..10]
+                };
 
-            var tootaja = new Töötaja
-            {
-                Nimi = "Mati Maasikas",
-                Email = "mati@mail.com",
-                Roll = "Mehaanik"
-            };
+                var tootaja = new Töötaja
+                {
+                    Nimi = "Mati Maasikas",
+                    Email = $"{Guid.NewGuid():N}@mail.com",
+                    Roll = "Mehaanik"
+                };
 
-            var tyyp = new OperatsiooniTyyp
-            {
-                Nimi = "Õlivahetus",
-                Kirjeldus = "Mootoriõli vahetus"
-            };
+                var tyyp = new OperatsiooniTyyp
+                {
+                    Nimi = "Õlivahetus " + Guid.NewGuid().ToString("N")[..5],
+                    Kirjeldus = "Mootoriõli vahetus"
+                };
 
-            await db.Autos.AddAsync(auto);
-            await db.Töötajad.AddAsync(tootaja);
-            await db.OperatsiooniTüübid.AddAsync(tyyp);
-            await db.SaveChangesAsync();
+                await db.Autos.AddAsync(auto);
+                await db.Töötajad.AddAsync(tootaja);
+                await db.OperatsiooniTüübid.AddAsync(tyyp);
+                await db.SaveChangesAsync();
 
-            var operatsioon = new Operatsioon
-            {
-                AutoId = auto.Id,
-                TöötajaId = tootaja.Id,
-                TüüpId = tyyp.Id,
-                Kuupäev = DateTime.Now.AddDays(-1),
-                Staatus = "Valmis",
-                Maksumus = 100m
-            };
+                var operatsioon = new Operatsioon
+                {
+                    AutoId = auto.Id,
+                    TöötajaId = tootaja.Id,
+                    TüüpId = tyyp.Id,
+                    Kuupäev = DateTime.Now.AddDays(-1),
+                    Staatus = "Valmis",
+                    Maksumus = 100m
+                };
 
-            await db.Operatsioonid.AddAsync(operatsioon);
-            await db.SaveChangesAsync();
+                await db.Operatsioonid.AddAsync(operatsioon);
+                await db.SaveChangesAsync();
 
-            return operatsioon.Id;
+                return operatsioon.Id;
+            });
         }
     }
 }
