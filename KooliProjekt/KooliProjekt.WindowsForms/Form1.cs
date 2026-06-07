@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text;
 using KooliProjekt.WindowsForms.Api;
 using KooliProjekt.WindowsForms.Models;
 
@@ -9,7 +10,6 @@ namespace KooliProjekt.WindowsForms
         private readonly IApiClient _apiClient;
         private BindingList<AutoModel> _autos = new();
 
-        // Для конструктора Visual Studio Designer
         public Form1()
             : this(new ApiClient(new HttpClient
             {
@@ -32,120 +32,100 @@ namespace KooliProjekt.WindowsForms
 
         private async Task LoadData()
         {
-            try
-            {
-                var autos = await _apiClient.GetAutosAsync();
+            var result = await _apiClient.GetAutosAsync();
 
-                _autos = new BindingList<AutoModel>(autos);
-
-                dataGridView1.AutoGenerateColumns = true;
-                dataGridView1.DataSource = _autos;
-            }
-            catch (Exception ex)
+            if (result.HasErrors)
             {
-                MessageBox.Show(
-                    "Andmete laadimine ebaõnnestus: " + ex.Message,
-                    "Viga",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ShowError(result);
+                return;
             }
+
+            _autos = new BindingList<AutoModel>(result.Value ?? new List<AutoModel>());
+
+            dataGridView1.AutoGenerateColumns = true;
+            dataGridView1.DataSource = _autos;
         }
 
         private async void addButton_Click(object sender, EventArgs e)
         {
-            try
+            var auto = new AutoModel
             {
-                var auto = new AutoModel
-                {
-                    Id = 0,
-                    Tootja = "Uus tootja",
-                    Mudel = "Uus mudel",
-                    Numbrimark = "NEW" + DateTime.Now.Ticks.ToString()[^4..]
-                };
+                Id = 0,
+                Tootja = "Uus tootja",
+                Mudel = "Uus mudel",
+                Numbrimark = "NEW" + DateTime.Now.Ticks.ToString()[^4..]
+            };
 
-                await _apiClient.SaveAutoAsync(auto);
+            var result = await _apiClient.SaveAutoAsync(auto);
 
-                await LoadData();
-            }
-            catch (Exception ex)
+            if (result.HasErrors)
             {
-                MessageBox.Show(
-                    "Auto lisamine ebaõnnestus: " + ex.Message,
-                    "Viga",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ShowError(result);
+                return;
             }
+
+            await LoadData();
         }
 
         private async void saveButton_Click(object sender, EventArgs e)
         {
-            try
+            dataGridView1.EndEdit();
+
+            var auto = GetSelectedAuto();
+
+            if (auto == null)
             {
-                dataGridView1.EndEdit();
-
-                var auto = GetSelectedAuto();
-
-                if (auto == null)
-                {
-                    MessageBox.Show("Vali rida, mida salvestada.");
-                    return;
-                }
-
-                await _apiClient.SaveAutoAsync(auto);
-
-                await LoadData();
+                MessageBox.Show("Vali rida, mida salvestada.");
+                return;
             }
-            catch (Exception ex)
+
+            var result = await _apiClient.SaveAutoAsync(auto);
+
+            if (result.HasErrors)
             {
-                MessageBox.Show(
-                    "Auto salvestamine ebaõnnestus: " + ex.Message,
-                    "Viga",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                ShowError(result);
+                return;
             }
+
+            await LoadData();
         }
 
         private async void deleteButton_Click(object sender, EventArgs e)
         {
-            try
+            var auto = GetSelectedAuto();
+
+            if (auto == null)
             {
-                var auto = GetSelectedAuto();
-
-                if (auto == null)
-                {
-                    MessageBox.Show("Vali rida, mida kustutada.");
-                    return;
-                }
-
-                if (auto.Id <= 0)
-                {
-                    MessageBox.Show("Seda rida ei saa kustutada, sest ID puudub.");
-                    return;
-                }
-
-                var confirm = MessageBox.Show(
-                    $"Kas kustutada auto {auto.Tootja} {auto.Mudel}?",
-                    "Kinnitus",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (confirm != DialogResult.Yes)
-                {
-                    return;
-                }
-
-                await _apiClient.DeleteAutoAsync(auto.Id);
-
-                await LoadData();
+                MessageBox.Show("Vali rida, mida kustutada.");
+                return;
             }
-            catch (Exception ex)
+
+            if (auto.Id <= 0)
             {
-                MessageBox.Show(
-                    "Auto kustutamine ebaõnnestus: " + ex.Message,
-                    "Viga",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show("Seda rida ei saa kustutada, sest ID puudub.");
+                return;
             }
+
+            var confirm = MessageBox.Show(
+                $"Kas kustutada auto {auto.Tootja} {auto.Mudel}?",
+                "Kinnitus",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes)
+            {
+                return;
+            }
+
+            var result = await _apiClient.DeleteAutoAsync(auto.Id);
+
+            if (result.HasErrors)
+            {
+                ShowError(result);
+                return;
+            }
+
+            await LoadData();
         }
 
         private AutoModel GetSelectedAuto()
@@ -156,6 +136,35 @@ namespace KooliProjekt.WindowsForms
             }
 
             return dataGridView1.CurrentRow.DataBoundItem as AutoModel;
+        }
+
+        private void ShowError(OperationResult result)
+        {
+            var message = new StringBuilder();
+
+            foreach (var error in result.Errors)
+            {
+                message.AppendLine(error);
+            }
+
+            foreach (var propertyError in result.PropertyErrors)
+            {
+                foreach (var error in propertyError.Value)
+                {
+                    message.AppendLine($"{propertyError.Key}: {error}");
+                }
+            }
+
+            if (message.Length == 0)
+            {
+                message.AppendLine("Tundmatu viga.");
+            }
+
+            MessageBox.Show(
+                message.ToString(),
+                "Viga",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
     }
 }

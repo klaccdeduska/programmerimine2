@@ -4,8 +4,8 @@ namespace KooliProjekt.WindowsForms.Api
 {
     public interface IApiClient
     {
-        Task<List<AutoModel>> GetAutosAsync();
-        Task<AutoModel> SaveAutoAsync(AutoModel auto);
-        Task<bool> DeleteAutoAsync(int id);
+        Task<OperationResult<List<AutoModel>>> GetAutosAsync();
+        Task<OperationResult<AutoModel>> SaveAutoAsync(AutoModel auto);
+        Task<OperationResult<bool>> DeleteAutoAsync(int id);
     }
 }
